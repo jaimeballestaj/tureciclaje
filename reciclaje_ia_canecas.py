@@ -1,53 +1,48 @@
-# reciclaje_ia_canecas.py — versión corregida e interactiva para Streamlit
+# reciclaje_ia_canecas.py — versión sin joblib ni .pkl para Streamlit Cloud
 
 import os
 import pandas as pd
 import numpy as np
-import joblib
 import streamlit as st
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
-# Entrenamiento del modelo si no existe
-if not os.path.exists("modelo_reciclaje.pkl"):
-    residuos = pd.DataFrame({
-        'residuo': [
-            'botella plastica', 'cascara de banana', 'papel', 'lata', 'vaso icopor', 'envoltura metalizada',
-            'carton', 'pañal usado', 'vidrio', 'bolsa plastica', 'restos de comida', 'revista'
-        ],
-        'tipo': [
-            'reciclable', 'organico', 'reciclable', 'reciclable', 'no reciclable', 'no reciclable',
-            'reciclable', 'no reciclable', 'reciclable', 'reciclable', 'organico', 'reciclable'
-        ]
-    })
+# Datos base de entrenamiento
+residuos = pd.DataFrame({
+    'residuo': [
+        'botella plastica', 'cascara de banana', 'papel', 'lata', 'vaso icopor', 'envoltura metalizada',
+        'carton', 'pañal usado', 'vidrio', 'bolsa plastica', 'restos de comida', 'revista'
+    ],
+    'tipo': [
+        'reciclable', 'organico', 'reciclable', 'reciclable', 'no reciclable', 'no reciclable',
+        'reciclable', 'no reciclable', 'reciclable', 'reciclable', 'organico', 'reciclable'
+    ]
+})
 
-    mapa_caneca = {
-        'reciclable': 'azul',
-        'organico': 'verde',
-        'no reciclable': 'gris'
-    }
-    residuos['caneca'] = residuos['tipo'].map(mapa_caneca)
+mapa_caneca = {
+    'reciclable': 'azul',
+    'organico': 'verde',
+    'no reciclable': 'gris'
+}
+residuos['caneca'] = residuos['tipo'].map(mapa_caneca)
 
-    residuos['es_plastico'] = residuos['residuo'].str.contains("plast|icop|bolsa|envoltura").astype(int)
-    residuos['es_organico'] = residuos['residuo'].str.contains("banana|comida|cascara").astype(int)
-    residuos['es_papel'] = residuos['residuo'].str.contains("papel|revista|carton").astype(int)
-    residuos['es_vidrio'] = residuos['residuo'].str.contains("vidrio").astype(int)
-    residuos['es_metal'] = residuos['residuo'].str.contains("lata").astype(int)
+residuos['es_plastico'] = residuos['residuo'].str.contains("plast|icop|bolsa|envoltura").astype(int)
+residuos['es_organico'] = residuos['residuo'].str.contains("banana|comida|cascara").astype(int)
+residuos['es_papel'] = residuos['residuo'].str.contains("papel|revista|carton").astype(int)
+residuos['es_vidrio'] = residuos['residuo'].str.contains("vidrio").astype(int)
+residuos['es_metal'] = residuos['residuo'].str.contains("lata").astype(int)
 
-    X = residuos[['es_plastico', 'es_organico', 'es_papel', 'es_vidrio', 'es_metal']]
-    y = residuos['caneca']
+X = residuos[['es_plastico', 'es_organico', 'es_papel', 'es_vidrio', 'es_metal']]
+y = residuos['caneca']
 
-    modelo = RandomForestClassifier(n_estimators=100, random_state=42)
-    modelo.fit(X, y)
-    joblib.dump(modelo, 'modelo_reciclaje.pkl')
+modelo = RandomForestClassifier(n_estimators=100, random_state=42)
+modelo.fit(X, y)
 
 # Streamlit App
 st.set_page_config(page_title="Reciclaje Inteligente", page_icon="♻️", layout="centered")
 st.title("♻️ Asistente de Reciclaje con IA")
 st.markdown("Aprende en qué caneca depositar correctamente tus residuos.")
-
-modelo = joblib.load('modelo_reciclaje.pkl')
 
 residuo_input = st.text_input("¿Qué residuo quieres clasificar?", "botella plastica")
 
